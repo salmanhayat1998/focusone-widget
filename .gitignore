@@ -141,3 +141,23 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# Electron Builder
+release/
+build/
+dist/
+out/
+
+# Packaged Electron apps
+*.exe
+*.dmg
+*.AppImage
+*.deb
+*.rpm
+*.msi
+
+# Electron generated archives
+*.asar
+
+# Electron Builder cache
+electron-builder-cache/
