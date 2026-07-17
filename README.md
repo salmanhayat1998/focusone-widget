@@ -100,6 +100,25 @@ In the same window, pick 'Buzz me the current task every 15/30/45/60 min'
 to get a recurring nudge of what you should be doing. Off by default.
 (Fires while the laptop app is running.)
 
+--------------------------------------------------
+## SCREENSHOTS
+
+### Main Window
+
+<img width="2627" height="2032" alt="image" src="https://github.com/user-attachments/assets/e728e344-3266-493b-ad73-de6aa8bd0f54" />
+<img width="2562" height="2020" alt="image" src="https://github.com/user-attachments/assets/c74d7c85-d510-4b4d-b867-33aa7e927d5b" />
+<img width="2635" height="2005" alt="image" src="https://github.com/user-attachments/assets/b3aec1e7-5baa-4a68-a182-b1bb34b419bc" />
+
+
+### Widget Mode
+
+<img width="3837" height="2157" alt="image" src="https://github.com/user-attachments/assets/4aff9a2c-ca49-4b7f-8366-99a1fdf34229" />
+
+
+### Phone Reminders
+
+<img width="2570" height="2035" alt="image" src="https://github.com/user-attachments/assets/79bd6102-a2bd-45b9-8eea-328501c6005a" />
+
 ## WHAT BUZZES YOUR PHONE NOW
 - Every subtask you tick done (shows what's next)
 - Every task you finish (shows the next task)
