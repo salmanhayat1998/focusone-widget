@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>FocusOne</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin:0; background:#faf8f2; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color:#2c2c2a; padding:16px; }
+  .fo-root { max-width: 640px; margin: 0 auto; }
+  .fo-card { background:#fff; border:1px solid #e5e3db; border-radius:14px; padding:18px; margin-bottom:14px; }
+  .fo-h { font-size:20px; font-weight:600; margin:0 0 4px; }
+  .fo-sub { font-size:13px; color:#7a7870; margin:0 0 14px; }
+  .fo-btn { font:inherit; font-size:14px; cursor:pointer; border:1px solid #d3d1c7; background:#fff; color:#2c2c2a; border-radius:9px; padding:9px 14px; transition:all .12s; }
+  .fo-btn:hover { background:#f5f3ec; }
+  .fo-btn:active { transform:scale(.98); }
+  .fo-btn:disabled { opacity:.35; cursor:not-allowed; }
+  .fo-btn:disabled:hover { background:#fff; }
+  .fo-btn.primary { background:#534ab7; color:#fff; border-color:#534ab7; }
+  .fo-btn.primary:hover { background:#453c9e; }
+  .fo-btn.success { background:#1d9e75; color:#fff; border-color:#1d9e75; }
+  .fo-btn.success:hover { background:#178563; }
+  .fo-btn.success:disabled { background:#b4b2a9; border-color:#b4b2a9; }
+  .fo-btn.big { font-size:16px; padding:12px 20px; }
+  .fo-btn.ghost { border:none; background:transparent; color:#7a7870; padding:6px 8px; }
+  .fo-btn.ghost:hover { background:#f1efe8; }
+  .fo-btn.sm { font-size:12px; padding:6px 10px; }
+  .fo-input, .fo-select { font:inherit; font-size:14px; width:100%; border:1px solid #d3d1c7; border-radius:9px; padding:9px 11px; background:#fff; color:#2c2c2a; }
+  .fo-input:focus, .fo-select:focus { outline:none; border-color:#534ab7; box-shadow:0 0 0 3px #eeedfe; }
+  .fo-row { display:flex; gap:8px; align-items:center; }
+  .fo-label { font-size:12px; font-weight:600; color:#7a7870; margin:12px 0 5px; display:block; }
+  .fo-task-item { display:flex; align-items:center; gap:10px; padding:12px; border:1px solid #e5e3db; border-radius:11px; margin-bottom:8px; background:#fff; }
+  .fo-task-item.dragging { opacity:.4; }
+  .fo-grip { color:#b4b2a9; font-size:18px; cursor:grab; padding:0 2px; user-select:none; }
+  .fo-grip.disabled { opacity:.3; cursor:not-allowed; }
+  .fo-tname { flex:1; font-size:15px; }
+  .fo-badge { font-size:11px; padding:3px 8px; border-radius:6px; font-weight:600; white-space:nowrap; }
+  .fo-b-high { background:#fcebeb; color:#a32d2d; }
+  .fo-b-med { background:#faeeda; color:#854f0b; }
+  .fo-b-low { background:#eaf3de; color:#3b6d11; }
+  .fo-b-recur { background:#eeedfe; color:#534ab7; }
+  .fo-b-urg { background:#fcebeb; color:#a32d2d; }
+  .fo-b-lock { background:#f1efe8; color:#7a7870; }
+  .fo-focus-name { font-size:26px; font-weight:600; margin:6px 0 4px; line-height:1.25; }
+  .fo-timer { font-size:44px; font-weight:700; font-variant-numeric:tabular-nums; margin:8px 0; letter-spacing:1px; }
+  .fo-step { display:flex; align-items:center; gap:10px; padding:11px 12px; border:1px solid #e5e3db; border-radius:10px; margin-bottom:7px; background:#fff; }
+  .fo-step.draggable-sub { cursor:grab; }
+  .fo-step.dragging { opacity:.4; }
+  .fo-step.active { border-color:#534ab7; background:#f7f6fe; }
+  .fo-step.locked { opacity:.5; }
+  .fo-step.done { opacity:.55; }
+  .fo-step.done .fo-step-txt { text-decoration:line-through; }
+  .fo-step-num { width:22px; height:22px; border-radius:50%; background:#f1efe8; color:#7a7870; font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .fo-step.active .fo-step-num { background:#534ab7; color:#fff; }
+  .fo-step.done .fo-step-num { background:#1d9e75; color:#fff; }
+  .fo-step-txt { flex:1; font-size:14px; }
+  .fo-park-item { display:flex; gap:8px; align-items:center; padding:8px 10px; background:#faf8f2; border-radius:8px; margin-bottom:6px; font-size:13px; }
+  .fo-tabs { display:flex; gap:6px; margin-bottom:14px; }
+  .fo-tab { flex:1; text-align:center; padding:9px; border-radius:9px; cursor:pointer; font-size:13px; font-weight:600; border:1px solid #e5e3db; background:#fff; color:#7a7870; }
+  .fo-tab.active { background:#2c2c2a; color:#fff; border-color:#2c2c2a; }
+  .fo-empty { text-align:center; color:#b4b2a9; padding:26px 0; font-size:14px; }
+  .fo-pill { display:inline-flex; gap:6px; align-items:center; font-size:12px; color:#7a7870; }
+  .fo-mini { font-size:12px; color:#7a7870; }
+  .fo-nudge { background:#eeedfe; border:1px solid #cecbf6; border-radius:11px; padding:13px; margin-top:14px; }
+  .fo-flash { animation:fo-flash-anim .5s; }
+  @keyframes fo-flash-anim { 0% { background:#d1f5e5; } 100% { background:#fff; } }
+  .fo-startbar { background:#eeedfe; border:1px solid #cecbf6; border-radius:12px; padding:14px; margin-bottom:14px; text-align:center; }
+
+
+  /* desktop controls */
+  .fo-controls { display:flex; gap:8px; justify-content:flex-end; align-items:center; max-width:640px; margin:0 auto 8px; }
+  .fo-ctrl-btn { font:inherit; font-size:12px; cursor:pointer; border:1px solid #d3d1c7; background:#fff; color:#7a7870; border-radius:8px; padding:6px 10px; }
+  .fo-ctrl-btn:hover { background:#f5f3ec; }
+  .fo-ctrl-btn.on { background:#534ab7; color:#fff; border-color:#534ab7; }
+
+  /* WIDGET MODE — dark glass, transparent window */
+  body.widget { padding:0; background:transparent !important; }
+  body.widget .fo-controls, body.widget #fo-app { display:none !important; }
+  #fo-widget { display:none; }
+  html, body { background:transparent !important; }
+  body.widget #fo-widget {
+    display:flex; flex-direction:column; height:100vh;
+    background:rgba(20,18,32,0.42);
+    border:1px solid rgba(255,255,255,0.10);
+    border-radius:16px;
+    overflow:hidden;
+  }
+  .wg-drag { -webkit-app-region:drag; cursor:move; padding:12px 15px 4px; display:flex; align-items:center; justify-content:space-between; }
+  .wg-title { font-size:10px; font-weight:800; letter-spacing:.14em; color:#a79fe6; display:flex; align-items:center; gap:6px; }
+  .wg-title::before { content:''; width:7px; height:7px; border-radius:50%; background:#8f86e8; box-shadow:0 0 8px #8f86e8; }
+  .wg-expand { -webkit-app-region:no-drag; cursor:pointer; border:none; background:rgba(143,134,232,0.18); color:#c8c2f5; border-radius:8px; font-size:11px; font-weight:700; padding:5px 11px; }
+  .wg-expand:hover { background:rgba(143,134,232,0.30); }
+  .wg-body { padding:6px 16px 16px; flex:1; display:flex; flex-direction:column; }
+  .wg-task { font-size:22px; font-weight:800; color:#f4f2ff; line-height:1.15; letter-spacing:-.01em; margin:4px 0 14px; }
+  .wg-sub-label { font-size:9px; font-weight:800; letter-spacing:.14em; color:#8b83c4; margin-bottom:7px; }
+  .wg-sub {
+    font-size:15px; font-weight:600; color:#eae8f7;
+    background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.09);
+    border-radius:14px; padding:14px 15px; display:flex; align-items:center; gap:12px;
+  }
+  .wg-sub .wg-dot { width:10px; height:10px; border-radius:50%; background:#8f86e8; flex-shrink:0; box-shadow:0 0 8px rgba(143,134,232,.6); }
+  .wg-done, .wg-finish-btn {
+    -webkit-app-region:no-drag; margin-left:auto; cursor:pointer; border:none;
+    color:#173d2e; background:#a8e05f;
+    border-radius:10px; font-size:13px; font-weight:800; padding:8px 15px;
+    box-shadow:0 3px 12px rgba(168,224,95,.35); transition:transform .1s;
+  }
+  .wg-done:hover, .wg-finish-btn:hover { transform:translateY(-1px); }
+  .wg-done:active, .wg-finish-btn:active { transform:translateY(0); }
+  .wg-finish-btn { background:#8f86e8; color:#fff; box-shadow:0 3px 12px rgba(143,134,232,.4); }
+  .wg-start-btn {
+    -webkit-app-region:no-drag; cursor:pointer; border:none; color:#fff; background:#8f86e8;
+    border-radius:10px; font-size:14px; font-weight:800; padding:11px 18px; width:100%;
+    box-shadow:0 3px 12px rgba(143,134,232,.4); transition:transform .1s;
+  }
+  .wg-start-btn:hover { transform:translateY(-1px); }
+  .wg-dial-wrap { margin-top:auto; padding-top:16px; display:flex; align-items:center; gap:14px; }
+  .wg-dial { position:relative; width:58px; height:58px; flex-shrink:0; }
+  .wg-dial svg { transform:rotate(-90deg); }
+  .wg-dial-track { fill:none; stroke:rgba(255,255,255,0.12); stroke-width:6; }
+  .wg-dial-fill { fill:none; stroke:url(#wgGrad); stroke-width:6; stroke-linecap:round; transition:stroke-dashoffset .5s cubic-bezier(.4,0,.2,1); }
+  .wg-dial-pct { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:800; color:#dcd8f5; }
+  .wg-dial-meta { display:flex; flex-direction:column; }
+  .wg-dial-count { font-size:15px; font-weight:800; color:#eae8f7; }
+  .wg-dial-sub { font-size:11px; color:#8b83c4; font-weight:600; }
+  .wg-empty { font-size:14px; color:#a79fe6; text-align:center; margin:auto; padding:22px; line-height:1.5; }
+  .wg-empty .wg-expand { display:inline-block; margin-top:12px; }
+
+</style>
+</head>
+<body>
+<div class="fo-controls" id="fo-controls" style="display:none;"><button class="fo-ctrl-btn" id="ctrl-widget">Widget mode</button><button class="fo-ctrl-btn" id="ctrl-pin">Pin on top</button><button class="fo-ctrl-btn" id="ctrl-phone">Phone reminders</button><button class="fo-ctrl-btn" id="ctrl-settings">Settings</button></div>
+<div class="fo-root" id="fo-app"></div>
+<div id="fo-widget"></div>
+<script>
+(function() {
+  var KEY = 'focusone:state:v5';
+  var uid = function(){ return Math.random().toString(36).slice(2,9); };
+
+  var _mem = {};
+  var STORAGE = (function(){
+    if (typeof window !== 'undefined' && window.storage && window.storage.get) {
+      return {
+        get: function(k){ return Promise.resolve(window.storage.get(k)).then(function(r){ return r && r.value ? r.value : null; }).catch(function(){ return null; }); },
+        set: function(k,v){ try { return Promise.resolve(window.storage.set(k,v)); } catch(e){ return Promise.resolve(); } }
+      };
+    }
+    var lsOk=false; try{ var t='__fo__'; localStorage.setItem(t,'1'); localStorage.removeItem(t); lsOk=true; }catch(e){ lsOk=false; }
+    if (lsOk) return { get:function(k){ try{return Promise.resolve(localStorage.getItem(k));}catch(e){return Promise.resolve(null);} }, set:function(k,v){ try{localStorage.setItem(k,v);}catch(e){} return Promise.resolve(); } };
+    return { get:function(k){ return Promise.resolve(_mem[k]||null); }, set:function(k,v){ _mem[k]=v; return Promise.resolve(); } };
+  })();
+
+  var state = {
+    tasks: [], parking: [], tab: 'now',
+    timer: { running:false, endsAt:null, len:0, done:false },
+    breakActive: null,
+    dayStarted: false,   // has the user hit Start? locks order
+    phoneTopic: '',      // ntfy topic for phone reminders
+    phonePeriodMin: 0,   // periodic current-task buzz interval (0=off)
+    lastOpenDay: '',     // YYYY-MM-DD of last app open, for daily rollover
+    draft: null
+  };
+
+  function load(){ return STORAGE.get(KEY).then(function(raw){ try { if(raw){ var p=JSON.parse(raw); if(p&&typeof p==='object') state=Object.assign(state,p); } } catch(e){} }).catch(function(){}); }
+  function save(){ try { STORAGE.set(KEY, JSON.stringify(state)); } catch(e){} }
+
+  function sortedTasks(){ return state.tasks.slice().sort(function(a,b){return (a.order||0)-(b.order||0);}); }
+  function dueTasks(){
+    return sortedTasks().filter(function(t){
+      if (!t.doneToday) return true;            // unfinished (carries over) or refreshed recurring
+      return false;                              // completed today -> hide until next cycle
+    });
+  }
+  function activeTask(){ return dueTasks().filter(function(t){return t.started;})[0] || null; }
+  function el(h){ var d=document.createElement('div'); d.innerHTML=h.trim(); return d.firstElementChild; }
+  function allStepsDone(t){ return t.steps.length>0 && t.steps.every(function(s){return s.done;}); }
+
+  function render() {
+    var app = document.getElementById('fo-app'); if(!app) return;
+    app.innerHTML='';
+    app.appendChild(renderTabs());
+    if (state.tab==='now') app.appendChild(renderNow());
+    else if (state.tab==='list') app.appendChild(renderList());
+    else app.appendChild(renderPark());
+  }
+
+  function renderTabs() {
+    var wrap = el('<div class="fo-tabs"></div>');
+    [['now','Focus now'],['list','All tasks'],['park','Ideas parked'+(state.parking.length?' ('+state.parking.length+')':'')]].forEach(function(pair){
+      var id=pair[0], label=pair[1];
+      var t = el('<div class="fo-tab '+(state.tab===id?'active':'')+'">'+label+'</div>');
+      t.onclick=function(){ state.tab=id; state.draft=null; save(); render(); }; wrap.appendChild(t);
+    });
+    return wrap;
+  }
+
+  // ---------- BUILDER ----------
+  function ensureDraft(){ if(!state.draft) state.draft={ name:'', subs:[], prio:'high', urgency:'high', recur:'none' }; }
+  function renderBuilder() {
+    ensureDraft();
+    var c = el('<div class="fo-card"></div>');
+    c.innerHTML =
+        '<p class="fo-h">New task</p><p class="fo-sub">Type the task, add your own subtasks, drag them into order. Then add it to your list. You can arrange all tasks before starting your day.</p>'
+      + '<label class="fo-label">Task</label>'
+      + '<input class="fo-input" id="d-name" placeholder="e.g. Apply to jobs" />'
+      + '<label class="fo-label">Subtasks (in the order you\'ll do them)</label>'
+      + '<div id="d-subs"></div>'
+      + '<div class="fo-row" style="margin-top:8px;"><input class="fo-input" id="d-sub-input" placeholder="Type a subtask and press Enter" /><button class="fo-btn" id="d-sub-add">+ Add</button></div>'
+      + '<div class="fo-row" style="margin-top:14px; flex-wrap:wrap; gap:8px;">'
+      + '<div style="flex:1; min-width:120px;"><label class="fo-label" style="margin-top:0;">Priority</label>'
+      + '<select class="fo-select" id="d-prio"><option value="high">High</option><option value="med">Medium</option><option value="low">Low</option></select></div>'
+      + '<div style="flex:1; min-width:120px;"><label class="fo-label" style="margin-top:0;">Urgency</label>'
+      + '<select class="fo-select" id="d-urg"><option value="high">Urgent</option><option value="medium">Normal</option><option value="low">Whenever</option></select></div>'
+      + '<div style="flex:1; min-width:120px;"><label class="fo-label" style="margin-top:0;">Repeats</label>'
+      + '<select class="fo-select" id="d-recur"><option value="none">One-time</option><option value="daily">Daily</option><option value="3day">Every ~3 days</option><option value="weekly">Weekly</option></select></div></div>'
+      + '<div class="fo-row" style="margin-top:16px; gap:8px;">'
+      + '<button class="fo-btn primary" id="d-addnew">Create &amp; add new</button>'
+      + '<button class="fo-btn" id="d-adddone">Add &amp; go to list</button>'
+      + '<button class="fo-btn ghost" id="d-cancel">Cancel</button></div>';
+    setTimeout(function(){ wireBuilder(c); },0);
+    return c;
+  }
+  function commitDraft(){
+    var d = state.draft;
+    if (!d.name.trim()) return false;
+    state.tasks.push({
+      id: uid(), name: d.name.trim(),
+      steps: d.subs.map(function(s){ return { id:uid(), text:s.text, done:false }; }),
+      activeStep: 0, started:false,
+      prio: d.prio, urgency: d.urgency, recur: d.recur,
+      order: state.tasks.length, doneToday:false
+    });
+    return true;
+  }
+  function wireBuilder(c) {
+    var d = state.draft;
+    var nameEl=c.querySelector('#d-name'); nameEl.value=d.name; nameEl.oninput=function(){ d.name=nameEl.value; };
+    c.querySelector('#d-prio').value=d.prio; c.querySelector('#d-urg').value=d.urgency; c.querySelector('#d-recur').value=d.recur;
+    c.querySelector('#d-prio').onchange=function(e){ d.prio=e.target.value; };
+    c.querySelector('#d-urg').onchange=function(e){ d.urgency=e.target.value; };
+    c.querySelector('#d-recur').onchange=function(e){ d.recur=e.target.value; };
+    renderDraftSubs(c);
+    var inp=c.querySelector('#d-sub-input');
+    var add=function(){ var v=inp.value.trim(); if(!v)return; d.subs.push({id:uid(),text:v}); inp.value=''; save(); renderDraftSubs(c); inp.focus(); };
+    c.querySelector('#d-sub-add').onclick=add;
+    inp.onkeydown=function(e){ if(e.key==='Enter') add(); };
+    c.querySelector('#d-addnew').onclick=function(){ if(!commitDraft()){ nameEl.focus(); return; } state.draft={ name:'', subs:[], prio:'high', urgency:'high', recur:'none' }; save(); render(); };
+    c.querySelector('#d-adddone').onclick=function(){ if(!commitDraft()){ nameEl.focus(); return; } state.draft=null; state.tab='list'; save(); render(); };
+    c.querySelector('#d-cancel').onclick=function(){ state.draft=null; state.tab='list'; save(); render(); };
+  }
+  var subDragEl=null;
+  function renderDraftSubs(c) {
+    var box=c.querySelector('#d-subs'); if(!box) return;
+    var d=state.draft;
+    if(!d.subs.length){ box.innerHTML='<p class="fo-mini" style="margin:4px 0;">No subtasks yet. Add some, or leave empty for a one-action task.</p>'; return; }
+    box.innerHTML='';
+    d.subs.forEach(function(s,i){
+      var row=el('<div class="fo-step draggable-sub" draggable="true" data-id="'+s.id+'">'
+        + '<span class="fo-grip">&#8942;&#8942;</span>'
+        + '<span class="fo-step-num">'+(i+1)+'</span>'
+        + '<span class="fo-step-txt">'+s.text+'</span>'
+        + '<button class="fo-btn ghost sm" data-del="'+s.id+'">&#10005;</button></div>');
+      row.querySelector('[data-del]').onclick=function(){ d.subs=d.subs.filter(function(x){return x.id!==s.id;}); save(); renderDraftSubs(c); };
+      row.addEventListener('dragstart',function(){ subDragEl=row; row.classList.add('dragging'); });
+      row.addEventListener('dragend',function(){ row.classList.remove('dragging'); subDragEl=null;
+        var ids=Array.prototype.slice.call(box.querySelectorAll('.draggable-sub')).map(function(r){return r.dataset.id;});
+        d.subs.sort(function(a,b){ return ids.indexOf(a.id)-ids.indexOf(b.id); }); save(); renderDraftSubs(c); });
+      row.addEventListener('dragover',function(e){ e.preventDefault(); var after=afterEl(box,'.draggable-sub',e.clientY); if(!subDragEl)return; if(after==null)box.appendChild(subDragEl); else box.insertBefore(subDragEl,after); });
+      box.appendChild(row);
+    });
+  }
+
+  // ---------- NOW ----------
+  function renderNow() {
+    if (state.breakActive) return renderBreak();
+
+    // PRE-START: show list + add + start all on the focus screen (built synchronously)
+    if (!state.dayStarted) {
+      var c = el('<div class="fo-card"></div>');
+      c.appendChild(el('<p class="fo-h">Build your day</p>'));
+      c.appendChild(el('<p class="fo-sub">Add your tasks and drag to arrange them. Top = first. When ready, press Start.</p>'));
+
+      var listBox = el('<div></div>');
+      c.appendChild(listBox);
+      buildTaskRows(listBox);
+
+      var btnRow = el('<div class="fo-row" style="margin-top:14px; gap:8px; flex-wrap:wrap;"></div>');
+      var addBtn = el('<button class="fo-btn">+ Add task</button>');
+      addBtn.onclick = function(){ ensureDraft(); save(); render(); };
+      btnRow.appendChild(addBtn);
+      if (state.tasks.length) {
+        var startBtn = el('<button class="fo-btn success big">&#9654; Start</button>');
+        startBtn.onclick = function(){ state.dayStarted = true; var first = dueTasks()[0]; if(first){ first.started=true; first.activeStep=0; } save(); render(); };
+        btnRow.appendChild(startBtn);
+      }
+      c.appendChild(btnRow);
+
+      if (state.draft) {
+        var builderMount = el('<div style="margin-top:14px;"></div>');
+        c.appendChild(builderMount);
+        renderInlineBuilder(builderMount);
+      }
+      return c;
+    }
+
+    // POST-START: one task at a time
+    var t = activeTask();
+    if (!t) {
+      var nextUnstarted = dueTasks()[0];
+      var c0 = el('<div class="fo-card"></div>');
+      if (nextUnstarted) {
+        // auto-start the next task, no intermediate screen
+        nextUnstarted.started = true; nextUnstarted.activeStep = 0; save();
+        return renderNow();
+      } else {
+        c0.innerHTML = '<p class="fo-h">All clear for today &#127881;</p><p class="fo-sub">Every task done.</p><button class="fo-btn" id="reset-day">Reset today</button>';
+        setTimeout(function(){ c0.querySelector('#reset-day').onclick=function(){ state.tasks.forEach(function(x){x.doneToday=false;x.started=false;x.activeStep=0;x.steps.forEach(function(s){s.done=false;});}); state.dayStarted=false; save(); render(); }; },0);
+      }
+      return c0;
+    }
+    var c = el('<div class="fo-card"></div>');
+    var hasSteps=t.steps.length>0;
+    var canFinish=!hasSteps||allStepsDone(t);
+    c.innerHTML = '<p class="fo-pill">&#9654; Do this now &mdash; nothing else</p>'
+      + '<p class="fo-focus-name">'+t.name+'</p>'
+      + '<div class="fo-row" style="gap:6px; margin-bottom:6px; flex-wrap:wrap;">'
+      + '<span class="fo-badge fo-b-'+(t.prio==='high'?'high':t.prio==='med'?'med':'low')+'">'+t.prio+' priority</span>'
+      + (t.urgency==='high'?'<span class="fo-badge fo-b-urg">urgent</span>':'')
+      + (t.recur!=='none'?'<span class="fo-badge fo-b-recur">repeats '+t.recur+'</span>':'')
+      + '</div>'
+      + '<div id="steps-zone" style="margin-top:12px;"></div>'
+      + '<div id="timer-zone" style="margin-top:14px;"></div>'
+      + '<div class="fo-row" style="margin-top:16px; gap:8px; flex-wrap:wrap;">'
+      + '<button class="fo-btn success" id="finish-task" '+(canFinish?'':'disabled')+'>&#10003; Finish task &amp; get next</button>'
+      + (hasSteps && !canFinish ? '<span class="fo-mini">Complete all subtasks to finish</span>' : '')
+      + '</div>'
+      + '<div style="margin-top:18px; padding-top:14px; border-top:1px solid #f1efe8;">'
+      + '<p class="fo-mini" style="margin-bottom:6px;">&#128161; New idea? Park it, don\'t chase it.</p>'
+      + '<div class="fo-row"><input class="fo-input" id="quick-park" placeholder="Dump the idea and keep working" /><button class="fo-btn" id="park-btn">Park</button></div></div>';
+    setTimeout(function(){ wireNow(c,t); },0);
+    return c;
+  }
+
+  // inline builder used under the pre-start list
+  function renderInlineBuilder(mount) {
+    if (!mount) return;
+    ensureDraft();
+    var d = state.draft;
+    mount.innerHTML = '<div class="fo-card" style="background:#faf8f2;">'
+      + '<p class="fo-h" style="font-size:16px;">New task</p>'
+      + '<label class="fo-label">Task</label>'
+      + '<input class="fo-input" id="d-name" placeholder="e.g. Apply to jobs" />'
+      + '<label class="fo-label">Subtasks (in the order you\'ll do them)</label>'
+      + '<div id="d-subs"></div>'
+      + '<div class="fo-row" style="margin-top:8px;"><input class="fo-input" id="d-sub-input" placeholder="Type a subtask and press Enter" /><button class="fo-btn" id="d-sub-add">+ Add</button></div>'
+      + '<div class="fo-row" style="margin-top:12px; flex-wrap:wrap; gap:8px;">'
+      + '<div style="flex:1; min-width:110px;"><label class="fo-label" style="margin-top:0;">Priority</label><select class="fo-select" id="d-prio"><option value="high">High</option><option value="med">Medium</option><option value="low">Low</option></select></div>'
+      + '<div style="flex:1; min-width:110px;"><label class="fo-label" style="margin-top:0;">Urgency</label><select class="fo-select" id="d-urg"><option value="high">Urgent</option><option value="medium">Normal</option><option value="low">Whenever</option></select></div>'
+      + '<div style="flex:1; min-width:110px;"><label class="fo-label" style="margin-top:0;">Repeats</label><select class="fo-select" id="d-recur"><option value="none">One-time</option><option value="daily">Daily</option><option value="3day">Every ~3 days</option><option value="weekly">Weekly</option></select></div></div>'
+      + '<div class="fo-row" style="margin-top:14px; gap:8px;"><button class="fo-btn primary" id="d-save">Add to list</button><button class="fo-btn ghost" id="d-cancel">Cancel</button></div></div>';
+    var nameEl=mount.querySelector('#d-name'); nameEl.value=d.name; nameEl.oninput=function(){ d.name=nameEl.value; };
+    mount.querySelector('#d-prio').value=d.prio; mount.querySelector('#d-urg').value=d.urgency; mount.querySelector('#d-recur').value=d.recur;
+    mount.querySelector('#d-prio').onchange=function(e){ d.prio=e.target.value; };
+    mount.querySelector('#d-urg').onchange=function(e){ d.urgency=e.target.value; };
+    mount.querySelector('#d-recur').onchange=function(e){ d.recur=e.target.value; };
+    renderDraftSubs(mount);
+    var inp=mount.querySelector('#d-sub-input');
+    var add=function(){ var v=inp.value.trim(); if(!v)return; d.subs.push({id:uid(),text:v}); inp.value=''; save(); renderDraftSubs(mount); inp.focus(); };
+    mount.querySelector('#d-sub-add').onclick=add;
+    inp.onkeydown=function(e){ if(e.key==='Enter') add(); };
+    mount.querySelector('#d-save').onclick=function(){ if(!commitDraft()){ nameEl.focus(); return; } state.draft=null; save(); render(); };
+    mount.querySelector('#d-cancel').onclick=function(){ state.draft=null; save(); render(); };
+  }
+
+
+  function wireNow(c,t) {
+    renderStepsZone(c,t); renderTimerZone(c,t);
+    var fin=c.querySelector('#finish-task');
+    fin.onclick=function(){ if(fin.disabled)return; t.doneToday=true; stampCompleted(t); c.classList.add('fo-flash'); stopTimer(); state.timer={running:false,endsAt:null,len:0,done:false}; save(); var nx=activeTask()||sortedTasks().filter(function(x){return !x.doneToday;})[0]; pushToPhone('\u2705 Finished: '+t.name, nx?('Next task: '+nx.name):'All tasks done for today!'); setTimeout(render,300); };
+    var pk=c.querySelector('#quick-park');
+    var doPark=function(){ var v=pk.value.trim(); if(!v)return; state.parking.push({id:uid(),text:v}); pk.value=''; save(); var b=c.querySelector('#park-btn'); b.textContent='Parked \u2713'; setTimeout(function(){if(b)b.textContent='Park';},1200); };
+    c.querySelector('#park-btn').onclick=doPark; pk.onkeydown=function(e){ if(e.key==='Enter') doPark(); };
+  }
+  function renderStepsZone(c,t) {
+    var z=c.querySelector('#steps-zone'); if(!z)return;
+    if(!t.steps.length){ z.innerHTML='<p class="fo-mini">No subtasks &mdash; just do it, then finish.</p>'; return; }
+    var html=t.steps.map(function(s,i){
+      var isActive=i===t.activeStep&&!s.done;
+      var cls=s.done?'done':isActive?'active':'locked';
+      return '<div class="fo-step '+cls+'"><span class="fo-step-num">'+(s.done?'\u2713':i+1)+'</span><span class="fo-step-txt">'+s.text+'</span>'+(!s.done?'<button class="fo-btn sm success" data-done="'+s.id+'" '+(isActive?'':'disabled')+'>Done</button>':'')+'</div>';
+    }).join('');
+    var remaining=t.steps.filter(function(s){return !s.done;}).length;
+    html+='<p class="fo-mini" style="margin-top:6px;">'+(remaining>0?'Subtask '+(t.activeStep+1)+' of '+t.steps.length+' &mdash; finish it to unlock the next':'All subtasks done &#10003;')+'</p>';
+    z.innerHTML=html;
+    z.querySelectorAll('[data-done]').forEach(function(b){ b.onclick=function(){ if(b.disabled)return; var s=t.steps.find(function(x){return x.id===b.dataset.done;}); s.done=true; var ni=t.steps.findIndex(function(x){return !x.done;}); t.activeStep=ni<0?t.steps.length:ni; save(); var nextStep=ni>=0?t.steps[ni]:null; pushToPhone('\u2713 Done: '+s.text, nextStep?('Next: '+nextStep.text):('All steps done in '+t.name)); if(ni>=0){ state.breakActive={type:'between-steps'}; render(); } else { render(); } }; });
+  }
+  function renderTimerZone(c,t) {
+    var z=c.querySelector('#timer-zone'); if(!z)return; var tm=state.timer;
+    if(tm.done){
+      z.innerHTML='<div style="background:#faf8f2; border-radius:11px; padding:16px; text-align:center;"><p class="fo-h" style="font-size:17px;">&#9200; '+Math.round(tm.len/60)+' min up &mdash; how\'s it going?</p><div class="fo-row" style="justify-content:center; gap:8px; margin-top:10px; flex-wrap:wrap;"><button class="fo-btn" id="rem-more">Keep going, +15 min</button><button class="fo-btn ghost" id="rem-break">Take a short break</button></div></div>';
+      z.querySelector('#rem-more').onclick=function(){ startTimer(15*60); render(); };
+      z.querySelector('#rem-break').onclick=function(){ state.timer={running:false,endsAt:null,len:0,done:false}; state.breakActive={type:'short'}; save(); render(); };
+      return;
+    }
+    if(tm.running){
+      var secs=Math.max(0,Math.round((tm.endsAt-Date.now())/1000));
+      z.innerHTML='<div style="background:#faf8f2; border-radius:11px; padding:14px; text-align:center;"><p class="fo-mini">Reminder in</p><p class="fo-timer" id="timer-display">'+fmt(secs)+'</p><div class="fo-row" style="justify-content:center; gap:8px;"><button class="fo-btn" id="timer-cancel">Cancel reminder</button></div></div>';
+      z.querySelector('#timer-cancel').onclick=function(){ stopTimer(); state.timer={running:false,endsAt:null,len:0,done:false}; save(); render(); };
+      tick(); return;
+    }
+    z.innerHTML='<div style="background:#faf8f2; border-radius:11px; padding:14px;"><p class="fo-mini" style="text-align:center; margin-bottom:10px;">Optional: remind me to check in after</p><div class="fo-row" style="justify-content:center; gap:6px; flex-wrap:wrap;">'+[20,30,40,60].map(function(m){return '<button class="fo-btn sm" data-min="'+m+'">'+m+' min</button>';}).join('')+'<input class="fo-input" id="custom-min" type="number" min="1" placeholder="min" style="width:80px;" /><button class="fo-btn sm primary" id="custom-go">Set</button></div></div>';
+    z.querySelectorAll('[data-min]').forEach(function(b){ b.onclick=function(){ startTimer(parseInt(b.dataset.min)*60); render(); };});
+    z.querySelector('#custom-go').onclick=function(){ var v=parseInt(z.querySelector('#custom-min').value); if(v>0){ startTimer(v*60); render(); } };
+  }
+  function fmt(s){ return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0'); }
+  var timerInterval=null;
+  function startTimer(secs){ state.timer={running:true, endsAt:Date.now()+secs*1000, len:secs, done:false}; save(); }
+  function stopTimer(){ clearInterval(timerInterval); }
+  function tick(){ clearInterval(timerInterval); timerInterval=setInterval(function(){ var disp=document.getElementById('timer-display'); if(!disp){ clearInterval(timerInterval); return; } var secs=Math.max(0,Math.round((state.timer.endsAt-Date.now())/1000)); disp.textContent=fmt(secs); if(secs<=0){ clearInterval(timerInterval); state.timer.running=false; state.timer.done=true; save(); pushToPhone(); render(); } },1000); }
+
+  function renderBreak() {
+    var c=el('<div class="fo-card"></div>');
+    var type=state.breakActive.type; var between=type==='between-steps';
+    var parked=state.parking.length?state.parking[state.parking.length-1]:null;
+    var taskDone=!activeTask();
+    var head=between?'Subtask done &#10003;':'Break time';
+    var subhead=between?'Take 5 before the next subtask, or push on.':'Step away for a bit. You earned it.';
+    c.innerHTML='<p class="fo-h">'+head+'</p><p class="fo-sub">'+subhead+'</p><div class="fo-row" style="gap:8px; flex-wrap:wrap;"><button class="fo-btn" id="brk-short">Short break &mdash; 5 min</button><button class="fo-btn '+(taskDone?'':'ghost')+'" id="brk-long" '+(taskDone?'':'disabled')+'>Long break'+(taskDone?'':' &#128274; (finish task first)')+'</button></div><div id="brk-timer" style="margin-top:14px;"></div>'
+      + (parked?'<div class="fo-nudge"><p class="fo-mini" style="font-weight:600; color:#534ab7; margin-bottom:4px;">While you\'re resting &mdash; a parked idea:</p><p style="font-size:15px; margin:0 0 8px;">"'+parked.text+'"</p><div class="fo-row" style="gap:8px;"><button class="fo-btn sm primary" id="nudge-make">Turn into a task</button><button class="fo-btn sm ghost" id="nudge-later">Leave it parked</button></div></div>':'')
+      + '<button class="fo-btn success" id="brk-back" style="margin-top:16px;">'+(between?'&rarr; Next subtask':'&larr; Back to work')+'</button>';
+    setTimeout(function(){
+      c.querySelector('#brk-short').onclick=function(){ startBreakTimer(c,5*60); };
+      var long=c.querySelector('#brk-long'); if(long&&taskDone) long.onclick=function(){ startBreakTimer(c,20*60); };
+      if(parked){ c.querySelector('#nudge-make').onclick=function(){ state.draft={name:parked.text,subs:[],prio:'low',urgency:'low',recur:'none'}; state.parking=state.parking.filter(function(x){return x.id!==parked.id;}); state.breakActive=null; state.tab='list'; save(); render(); }; c.querySelector('#nudge-later').onclick=function(){ c.querySelector('.fo-nudge').style.display='none'; }; }
+      c.querySelector('#brk-back').onclick=function(){ stopTimer(); state.breakActive=null; save(); render(); };
+    },0);
+    return c;
+  }
+  function startBreakTimer(c,secs){ var z=c.querySelector('#brk-timer'); if(!z)return; var endsAt=Date.now()+secs*1000; z.innerHTML='<div style="background:#faf8f2; border-radius:11px; padding:14px; text-align:center;"><p class="fo-mini">Break ends in</p><p class="fo-timer" id="brk-disp">'+fmt(secs)+'</p></div>'; clearInterval(timerInterval); timerInterval=setInterval(function(){ var d=document.getElementById('brk-disp'); if(!d){clearInterval(timerInterval);return;} var s=Math.max(0,Math.round((endsAt-Date.now())/1000)); d.textContent=fmt(s); if(s<=0){ clearInterval(timerInterval); d.textContent="Time's up"; d.style.color='#1d9e75'; } },1000); }
+
+  // ---------- LIST ----------
+  function renderList() {
+    var c=el('<div class="fo-card"></div>');
+    var locked = state.dayStarted;
+    c.innerHTML='<p class="fo-h">All tasks</p><p class="fo-sub">'+(locked?'Order is locked. New tasks go to the bottom.':'Drag to arrange. Top = first. Then press Start to lock the order.')+'</p>'
+      + '<div id="task-list"></div>'
+      + '<div class="fo-row" style="margin-top:14px; gap:8px; flex-wrap:wrap;">'
+      + '<button class="fo-btn primary" id="new-task-btn">+ New task</button>'
+      + (!locked && state.tasks.length ? '<button class="fo-btn success big" id="start-day-btn">&#9654; Start (lock order)</button>' : '')
+      + (locked ? '<span class="fo-badge fo-b-lock">&#128274; order locked</span>' : '')
+      + '</div>'
+      + '<div id="list-builder" style="margin-top:14px;"></div>';
+    setTimeout(function(){
+      renderTaskRows(c);
+      c.querySelector('#new-task-btn').onclick=function(){ ensureDraft(); save(); render(); };
+      var sd=c.querySelector('#start-day-btn');
+      if(sd) sd.onclick=function(){ state.dayStarted=true; var first=dueTasks()[0]; if(first){first.started=true;first.activeStep=0;} state.tab='now'; save(); render(); };
+      if(state.draft) renderInlineBuilder(c.querySelector('#list-builder'));
+    },0);
+    return c;
+  }
+  function buildTaskRows(box) {
+    var list=dueTasks(); var locked=state.dayStarted;
+    box.innerHTML='';
+    if(!list.length){ box.innerHTML='<div class="fo-empty">No tasks yet. Tap "+ Add task".</div>'; return; }
+    list.forEach(function(t){
+      var row=el('<div class="fo-task-item" '+(locked?'':'draggable="true"')+' data-id="'+t.id+'">'
+        + '<span class="fo-grip '+(locked?'disabled':'')+'">&#8942;&#8942;</span>'
+        + '<span class="fo-tname" '+(t.doneToday?'style="text-decoration:line-through;color:#b4b2a9;"':'')+'>'+t.name+(t.steps.length?' <span class="fo-mini">('+t.steps.length+' subtasks)</span>':'')+(t.started&&!t.doneToday?' <span class="fo-badge fo-b-recur">in progress</span>':'')+'</span>'
+        + '<span class="fo-badge fo-b-'+(t.prio==='high'?'high':t.prio==='med'?'med':'low')+'">'+t.prio+'</span>'
+        + (t.urgency==='high'?'<span class="fo-badge fo-b-urg">urgent</span>':'')
+        + (t.recur!=='none'?'<span class="fo-badge fo-b-recur">'+t.recur+'</span>':'')
+        + '<button class="fo-btn ghost" data-del="'+t.id+'">&#10005;</button></div>');
+      row.querySelector('[data-del]').onclick=function(e){ e.stopPropagation(); state.tasks=state.tasks.filter(function(x){return x.id!==t.id;}); save(); render(); };
+      if(!locked) addDrag(row,box);
+      box.appendChild(row);
+    });
+  }
+
+  function renderTaskRows(c, mountId) {
+    var box=c.querySelector('#'+(mountId||'task-list')); if(!box) return; var list=sortedTasks(); var locked=state.dayStarted;
+    if(!list.length){ box.innerHTML='<div class="fo-empty">No tasks yet. Add one, or several.</div>'; return; }
+    box.innerHTML='';
+    list.forEach(function(t){
+      var row=el('<div class="fo-task-item" '+(locked?'':'draggable="true"')+' data-id="'+t.id+'">'
+        + '<span class="fo-grip '+(locked?'disabled':'')+'">&#8942;&#8942;</span>'
+        + '<span class="fo-tname" '+(t.doneToday?'style="text-decoration:line-through;color:#b4b2a9;"':'')+'>'+t.name+(t.steps.length?' <span class="fo-mini">('+t.steps.length+' subtasks)</span>':'')+(t.started&&!t.doneToday?' <span class="fo-badge fo-b-recur">in progress</span>':'')+'</span>'
+        + '<span class="fo-badge fo-b-'+(t.prio==='high'?'high':t.prio==='med'?'med':'low')+'">'+t.prio+'</span>'
+        + (t.urgency==='high'?'<span class="fo-badge fo-b-urg">urgent</span>':'')
+        + (t.recur!=='none'?'<span class="fo-badge fo-b-recur">'+t.recur+'</span>':'')
+        + '<button class="fo-btn ghost" data-del="'+t.id+'">&#10005;</button></div>');
+      row.querySelector('[data-del]').onclick=function(e){ e.stopPropagation(); state.tasks=state.tasks.filter(function(x){return x.id!==t.id;}); save(); render(); };
+      if(!locked) addDrag(row,box);
+      box.appendChild(row);
+    });
+  }
+  var taskDragEl=null;
+  function addDrag(row,box){
+    row.addEventListener('dragstart',function(){ taskDragEl=row; row.classList.add('dragging'); });
+    row.addEventListener('dragend',function(){ row.classList.remove('dragging'); taskDragEl=null;
+      Array.prototype.slice.call(box.querySelectorAll('.fo-task-item')).forEach(function(r,i){ var t=state.tasks.find(function(x){return x.id===r.dataset.id;}); if(t)t.order=i; }); save(); });
+    row.addEventListener('dragover',function(e){ e.preventDefault(); var after=afterEl(box,'.fo-task-item',e.clientY); if(!taskDragEl)return; if(after==null)box.appendChild(taskDragEl); else box.insertBefore(taskDragEl,after); });
+  }
+  function afterEl(box,sel,y){
+    return Array.prototype.slice.call(box.querySelectorAll(sel+':not(.dragging)')).reduce(function(cl,ch){ var b=ch.getBoundingClientRect(); var o=y-b.top-b.height/2; return (o<0&&o>cl.offset)?{offset:o,element:ch}:cl; },{offset:-Infinity}).element;
+  }
+
+  // ---------- PARK ----------
+  function renderPark() {
+    var c=el('<div class="fo-card"></div>');
+    c.innerHTML='<p class="fo-h">Parked ideas</p><p class="fo-sub">Everything you caught yourself chasing. Deal with these later.</p><div id="park-list"></div>';
+    setTimeout(function(){renderParkList(c);},0); return c;
+  }
+  function renderParkList(c) {
+    var box=c.querySelector('#park-list');
+    if(!state.parking.length){ box.innerHTML='<div class="fo-empty">No parked ideas yet.</div>'; return; }
+    box.innerHTML='';
+    state.parking.forEach(function(p){
+      var row=el('<div class="fo-park-item"><span style="flex:1;">'+p.text+'</span><button class="fo-btn ghost" data-promote="'+p.id+'">&rarr; Make task</button><button class="fo-btn ghost" data-del="'+p.id+'">&#10005;</button></div>');
+      row.querySelector('[data-promote]').onclick=function(){ state.draft={name:p.text,subs:[],prio:'low',urgency:'low',recur:'none'}; state.parking=state.parking.filter(function(x){return x.id!==p.id;}); state.tab='list'; save(); render(); };
+      row.querySelector('[data-del]').onclick=function(){ state.parking=state.parking.filter(function(x){return x.id!==p.id;}); save(); renderParkList(c); };
+      box.appendChild(row);
+    });
+  }
+
+  function isWidgetLaunch(){ try { return new URLSearchParams(location.search).get('widget')==='1'; } catch(e){ return false; } }
+  function boot(){ var done=false; applyRollover();
+    if (isWidgetLaunch()) { document.body.classList.add('widget'); } function go(){ if(done)return; done=true; try{ applyRollover(); if(isWidgetLaunch()){ renderWidget(); } else { render(); } }catch(e){ console.error(e); var app=document.getElementById('fo-app'); if(app) app.innerHTML='<div class="fo-card"><p class="fo-h">Glitch</p><button class="fo-btn primary" id="rs">Reset</button></div>'; var b=document.getElementById('rs'); if(b) b.onclick=function(){ STORAGE.set(KEY,''); location.reload(); }; } }
+    try{ load().then(go,go); }catch(e){ go(); } setTimeout(go,1500);
+  }
+
+  // Desktop (Electron) window controls
+  if (typeof window !== 'undefined' && window.focusWin) {
+    var ctrls = document.getElementById('fo-controls');
+    if (ctrls) ctrls.style.display = 'flex';
+    var wBtn = document.getElementById('ctrl-widget');
+    var pBtn = document.getElementById('ctrl-pin');
+    if (wBtn) wBtn.onclick = function(){ window.focusWin.toggleWidget().then(function(isW){ document.body.classList.toggle('widget', isW); wBtn.classList.toggle('on', isW); wBtn.textContent = isW ? 'Full window' : 'Widget mode'; if(isW){ renderWidget(); } else { render(); } }); };
+    if (pBtn) pBtn.onclick = function(){ window.focusWin.toggleOnTop().then(function(on){ pBtn.classList.toggle('on', on); pBtn.textContent = on ? 'Pinned' : 'Pin on top'; }); };
+    var phoneBtn = document.getElementById('ctrl-phone');
+    if (phoneBtn) phoneBtn.onclick = function(){ openPhoneSettings(); };
+    var setBtn = document.getElementById('ctrl-settings');
+    if (setBtn) setBtn.onclick = function(){ openSettings(); };
+
+  }
+
+
+
+
+  function openSettings() {
+    var existing=document.getElementById('set-modal'); if(existing) existing.remove();
+    var overlay=document.createElement('div'); overlay.id='set-modal';
+    overlay.style.cssText='position:fixed;inset:0;background:rgba(30,28,50,.35);display:flex;align-items:center;justify-content:center;z-index:9999;';
+    overlay.innerHTML='<div class="fo-card" style="max-width:420px;width:90%;">'
+      + '<p class="fo-h">Settings</p>'
+      + '<div class="fo-row" style="justify-content:space-between;align-items:center;margin:10px 0;">'
+      + '<span style="font-size:14px;">Launch FocusOne when Windows starts</span>'
+      + '<button class="fo-btn" id="set-autolaunch">...</button></div>'
+      + '<p class="fo-mini">Your tasks are saved automatically. Daily tasks come back each day; unfinished tasks carry over.</p>'
+      + '<div class="fo-row" style="margin-top:16px;"><button class="fo-btn ghost" id="set-close">Close</button></div></div>';
+    document.body.appendChild(overlay);
+    var al=overlay.querySelector('#set-autolaunch');
+    function refresh(on){ al.textContent = on ? 'On' : 'Off'; al.classList.toggle('primary', !!on); }
+    if (window.appctl) window.appctl.getAutoLaunch().then(refresh); else refresh(false);
+    al.onclick=function(){ if(!window.appctl){ return; } var turnOn = al.textContent!=='On'; window.appctl.setAutoLaunch(turnOn).then(refresh); };
+    overlay.querySelector('#set-close').onclick=function(){ overlay.remove(); };
+    overlay.onclick=function(e){ if(e.target===overlay) overlay.remove(); };
+  }
+
+  function openPhoneSettings() {
+    var existing = document.getElementById('phone-modal'); if (existing) existing.remove();
+    var overlay = document.createElement('div');
+    overlay.id = 'phone-modal';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(30,28,50,.35);display:flex;align-items:center;justify-content:center;z-index:9999;overflow:auto;';
+    var topic = state.phoneTopic || ('focusone-' + Math.random().toString(36).slice(2,8));
+    var subUrl = 'https://ntfy.sh/' + encodeURIComponent(topic);
+    var qr = 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' + encodeURIComponent(subUrl);
+    overlay.innerHTML = '<div class="fo-card" style="max-width:460px;width:92%;margin:20px;">'
+      + '<p class="fo-h">Phone reminders</p>'
+      + '<p class="fo-sub">Free push to your phone via <b>ntfy</b>. No account.</p>'
+      + '<div style="background:#faf8f2;border-radius:10px;padding:12px;margin-bottom:12px;">'
+      + '<p class="fo-mini" style="font-weight:600;margin-bottom:8px;">Fast setup (no typing):</p>'
+      + '<ol style="font-size:13px;color:#555;line-height:1.6;padding-left:18px;margin:0 0 10px;">'
+      + '<li>Install the free <b>ntfy</b> app on your phone.</li>'
+      + '<li>Scan this QR with your phone camera, or open the link on your phone:</li></ol>'
+      + '<div style="text-align:center;margin:8px 0;"><img src="'+qr+'" alt="QR" style="border-radius:8px;background:#fff;padding:6px;" width="150" height="150"/></div>'
+      + '<div class="fo-row" style="gap:6px;"><input class="fo-input" id="pm-url" value="'+subUrl+'" readonly style="font-size:12px;" /><button class="fo-btn sm" id="pm-copy">Copy link</button></div>'
+      + '<p class="fo-mini" style="margin-top:6px;">Opening that link on your phone subscribes the ntfy app automatically.</p></div>'
+      + '<label class="fo-label">Topic name (advanced — usually leave as is)</label>'
+      + '<input class="fo-input" id="pm-topic" value="'+topic+'" />'
+      + '<label class="fo-label">Buzz me the current task every</label>'
+      + '<div class="fo-row" style="gap:6px;flex-wrap:wrap;">'
+      + [0,15,30,45,60].map(function(m){ return '<button class="fo-btn sm pm-period'+(state.phonePeriodMin===m?' primary':'')+'" data-min="'+m+'">'+(m===0?'Off':m+' min')+'</button>'; }).join('')
+      + '</div>'
+      + '<div class="fo-row" style="margin-top:16px; gap:8px; flex-wrap:wrap;">'
+      + '<button class="fo-btn primary" id="pm-save">Save</button>'
+      + '<button class="fo-btn" id="pm-test">Send test</button>'
+      + '<button class="fo-btn ghost" id="pm-close">Close</button></div>'
+      + '<p class="fo-mini" id="pm-status" style="margin-top:10px;"></p></div>';
+    document.body.appendChild(overlay);
+    var topicEl = overlay.querySelector('#pm-topic');
+    var urlEl = overlay.querySelector('#pm-url');
+    function refreshUrl(){ var tp=topicEl.value.trim(); var u='https://ntfy.sh/'+encodeURIComponent(tp); urlEl.value=u; overlay.querySelector('img').src='https://api.qrserver.com/v1/create-qr-code/?size=150x150&data='+encodeURIComponent(u); }
+    topicEl.oninput = refreshUrl;
+    overlay.querySelector('#pm-copy').onclick = function(){ urlEl.select(); try{ document.execCommand('copy'); }catch(e){} overlay.querySelector('#pm-status').textContent='Link copied.'; };
+    var chosenPeriod = state.phonePeriodMin;
+    overlay.querySelectorAll('.pm-period').forEach(function(b){ b.onclick=function(){ chosenPeriod=parseInt(b.dataset.min); overlay.querySelectorAll('.pm-period').forEach(function(x){x.classList.remove('primary');}); b.classList.add('primary'); }; });
+    overlay.querySelector('#pm-save').onclick = function(){ state.phoneTopic=topicEl.value.trim(); state.phonePeriodMin=chosenPeriod; save(); startPeriodicBuzz(); overlay.querySelector('#pm-status').textContent='Saved.'; };
+    overlay.querySelector('#pm-test').onclick = function(){ var tp=topicEl.value.trim(); if(!tp){ overlay.querySelector('#pm-status').textContent='Enter a topic first.'; return; } state.phoneTopic=tp; save(); overlay.querySelector('#pm-status').textContent='Sending...'; if(window.phone) window.phone.send(tp,'FocusOne test','If you see this on your phone, it works!').then(function(r){ var st=overlay.querySelector('#pm-status'); if(r&&r.ok){ st.textContent='Sent to ntfy OK. If your phone shows nothing, it is not subscribed to topic: '+tp; } else { st.textContent='FAILED: status '+(r&&r.status)+(r&&r.body?(' - '+r.body):'')+(r&&r.error?(' - '+r.error):''); } }); else { overlay.querySelector('#pm-status').textContent='Run inside the desktop app to send.'; } };
+    overlay.querySelector('#pm-close').onclick = function(){ overlay.remove(); };
+    overlay.onclick = function(e){ if(e.target===overlay) overlay.remove(); };
+  }
+
+  var periodicTimer = null;
+  function startPeriodicBuzz() {
+    if (periodicTimer) clearInterval(periodicTimer);
+    if (!state.phonePeriodMin || state.phonePeriodMin<=0) return;
+    periodicTimer = setInterval(function(){ pushToPhone(); }, state.phonePeriodMin*60*1000);
+  }
+
+
+  // ---------- RECURRING / DAILY ROLLOVER ----------
+  function todayStr(){ var d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+  function daysBetween(a,b){ return Math.round((new Date(b) - new Date(a)) / 86400000); }
+  function recurDueAgain(task){
+    if (task.recur==='none') return false;
+    if (!task.lastCompleted) return true;
+    var gap = daysBetween(task.lastCompleted, todayStr());
+    if (task.recur==='daily') return gap >= 1;
+    if (task.recur==='3day') return gap >= 3;
+    if (task.recur==='weekly') return gap >= 7;
+    return false;
+  }
+  // On open: reset any recurring task that's due again. Unfinished tasks are left untouched (carry over).
+  function applyRollover(){
+    var today = todayStr();
+    if (state.lastOpenDay === today) return; // already rolled over today
+    state.tasks.forEach(function(t){
+      if (t.recur!=='none' && t.doneToday && recurDueAgain(t)){
+        // it was completed on a previous cycle and is due again -> refresh it
+        t.doneToday = false; t.started = false; t.activeStep = 0;
+        t.steps.forEach(function(s){ s.done = false; });
+      }
+      // unfinished tasks (doneToday=false) are left exactly as they are -> they carry over
+    });
+    // A new day means the "day" is no longer started; user re-presses Start to lock order.
+    state.dayStarted = false;
+    state.lastOpenDay = today;
+    save();
+  }
+  // Mark completion date when a task is finished (so recurrence can measure gaps)
+  function stampCompleted(t){ t.lastCompleted = todayStr(); }
+
+  // ---------- PHONE PUSH (ntfy) ----------
+  function pushToPhone(customTitle, customBody) {
+    if (typeof window==='undefined' || !window.phone || !state.phoneTopic) return;
+    var title = customTitle, body = customBody;
+    if (!title) {
+      var t = activeTask();
+      if (t) {
+        var step = t.steps[t.activeStep];
+        title = 'Check in: ' + t.name;
+        body = step ? ('Now doing: ' + step.text) : 'Finish this task when ready.';
+      } else { title = 'FocusOne reminder'; body = 'Time to check in on your tasks.'; }
+    }
+    try { window.phone.send(state.phoneTopic, title, body); } catch(e){}
+  }
+
+  // ---------- WIDGET VIEW ----------
+  function renderWidget() {
+    var mount = document.getElementById('fo-widget');
+    if (!mount) return;
+    var t = activeTask();
+    var header = '<div class="wg-drag"><span class="wg-title">FocusOne</span><button class="wg-expand" id="wg-expand">Expand</button></div>';
+    if (!t) {
+      var nextDue = state.dayStarted ? dueTasks()[0] : null;
+      if (nextDue) {
+        mount.innerHTML = header + '<div class="wg-body"><div class="wg-sub-label">Next up</div><div class="wg-task">'+nextDue.name+'</div>'
+          + '<div class="wg-sub-label">'+nextDue.steps.length+' subtasks</div>'
+          + '<div style="margin-top:auto;"><button class="wg-start-btn" id="wg-start">&#9654; Start this task</button></div></div>';
+        bindExpand(mount);
+        var sb = mount.querySelector('#wg-start');
+        if (sb) sb.onclick = function(){ nextDue.started=true; nextDue.activeStep=0; save(); renderWidget(); };
+        return;
+      }
+      var msg = state.dayStarted ? 'All done for now.' : 'Press Start in the app to begin.';
+      mount.innerHTML = header + '<div class="wg-body"><div class="wg-empty">'+msg+'<button class="wg-expand" id="wg-expand2">Open full window</button></div></div>';
+      bindExpand(mount);
+      return;
+    }
+    var total = t.steps.length;
+    var doneCount = t.steps.filter(function(s){return s.done;}).length;
+    var pct = total ? Math.round(doneCount/total*100) : 0;
+    var active = t.steps[t.activeStep];
+    var subHtml;
+    if (active) {
+      subHtml = '<div class="wg-sub-label">Now doing</div><div class="wg-sub"><span class="wg-dot"></span><span>'+active.text+'</span><button class="wg-done" id="wg-done">Done</button></div>';
+    } else if (total===0) {
+      subHtml = '<div class="wg-sub-label">Task</div><div class="wg-sub"><span class="wg-dot"></span><span>No subtasks — just do it</span></div>';
+    } else {
+      subHtml = '<div class="wg-sub-label">All steps done</div><div class="wg-sub"><span class="wg-dot" style="background:#1d9e75;"></span><span>Ready to finish</span><button class="wg-finish-btn" id="wg-finish">Finish task</button></div>';
+    }
+    var circ = 2 * Math.PI * 25; // r=25
+    var offset = circ * (1 - pct/100);
+    var progHtml = total ? ('<div class="wg-dial-wrap">'
+      + '<div class="wg-dial"><svg width="58" height="58" viewBox="0 0 58 58">'
+      + '<defs><linearGradient id="wgGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#7b72e0"/><stop offset="100%" stop-color="#9fe06a"/></linearGradient></defs>'
+      + '<circle class="wg-dial-track" cx="29" cy="29" r="25"/>'
+      + '<circle class="wg-dial-fill" cx="29" cy="29" r="25" stroke-dasharray="'+circ+'" stroke-dashoffset="'+offset+'"/>'
+      + '</svg><div class="wg-dial-pct">'+pct+'%</div></div>'
+      + '<div class="wg-dial-meta"><span class="wg-dial-count">'+doneCount+' of '+total+'</span><span class="wg-dial-sub">steps done</span></div>'
+      + '</div>') : '';
+    mount.innerHTML = header + '<div class="wg-body"><div class="wg-task">'+t.name+'</div>'+subHtml+progHtml+'</div>';
+    bindExpand(mount);
+    var dn = mount.querySelector('#wg-done');
+    if (dn) dn.onclick = function(){
+      if (!active) return;
+      active.done = true;
+      var ni = t.steps.findIndex(function(x){return !x.done;});
+      t.activeStep = ni<0 ? t.steps.length : ni;
+      save();
+      var nextStep = ni>=0 ? t.steps[ni] : null;
+      pushToPhone('\u2713 Done: '+active.text, nextStep?('Next: '+nextStep.text):('All steps done in '+t.name));
+      renderWidget();
+    };
+    var fn = mount.querySelector('#wg-finish');
+    if (fn) fn.onclick = function(){
+      t.doneToday = true; stampCompleted(t);
+      stopTimer(); state.timer={running:false,endsAt:null,len:0,done:false};
+      save();
+      var nx = activeTask() || sortedTasks().filter(function(x){return !x.doneToday;})[0];
+      pushToPhone('\u2705 Finished: '+t.name, nx?('Next task: '+nx.name):'All tasks done for today!');
+      renderWidget();
+    };
+  }
+  function bindExpand(mount) {
+    ['#wg-expand','#wg-expand2'].forEach(function(sel){
+      var b = mount.querySelector(sel);
+      if (b) b.onclick = function(){ if (window.focusWin) window.focusWin.toggleWidget().then(function(){ document.body.classList.remove('widget'); render(); }); };
+    });
+  }
+
+  startPeriodicBuzz();
+  boot();
+})();
+</script>
+</body>
+</html>

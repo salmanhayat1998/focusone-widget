@@ -1,0 +1,36 @@
+ABOUT THAT BUILD ERROR ("Cannot create symbolic link")
+
+You saw this when running:  npm run build
+
+It is NOT a problem with the app. It's electron-builder trying to set up
+CODE SIGNING (needed only to distribute a signed app to other people).
+It was downloading a Mac signing tool (the darwin / .dylib paths) and
+Windows blocked the symlink because it needs admin rights.
+
+You don't need signing to run the app yourself.
+
+--------------------------------------------------
+EASIEST: just run it, no .exe needed
+       npm start
+The app opens directly. Done.
+
+--------------------------------------------------
+IF YOU WANT THE .EXE (now fixed)
+
+I've turned code signing OFF in package.json. Rebuild cleanly:
+
+   1. Delete the bad cache once (paste into PowerShell):
+        Remove-Item -Recurse -Force "$env:LOCALAPPDATA\electron-builder\Cache\winCodeSign" -ErrorAction SilentlyContinue
+
+   2. Rebuild:
+        npm run build
+
+   3. Your app appears in the "dist" folder as a portable .exe.
+
+If it STILL complains about symlinks, run PowerShell "as Administrator"
+just for the build, or enable Windows Developer Mode
+(Settings → Privacy & security → For developers → Developer Mode ON),
+which lets Windows create symlinks without admin. Then npm run build.
+
+--------------------------------------------------
+Bottom line: for personal use, "npm start" is all you need.
